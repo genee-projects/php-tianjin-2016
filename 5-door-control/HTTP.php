@@ -4,7 +4,7 @@ $server = new swoole_http_server("0.0.0.0", 80);
 
 $server->on('request', function ($request, $response) {
     $uri = $request->server['request_uri']; 
-
+    echo $request->server['remote_addr'].'> '.$request->server['request_method'].' '.$uri."\n";
     $root = rtrim(__DIR__, '/').'/web';
     $file = $root . '/'. ltrim($uri, '/'); 
     if (file_exists($file) && is_file($file)) { 
