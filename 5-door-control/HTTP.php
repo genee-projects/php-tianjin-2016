@@ -2,7 +2,9 @@
 
 $server = new swoole_http_server("0.0.0.0", 3000);
 
-$server->on('request', function ($request, $response) {
+$static_files = [];
+
+$server->on('request', function ($request, $response) use (&$static_files) {
 
     $uri = $request->server['request_uri']; 
     if (!$uri || $uri=='/') {
@@ -18,7 +20,10 @@ $server->on('request', function ($request, $response) {
     if (file_exists($file) && is_file($file)) { 
         $mime = mime_content_type($file);
         if ($mime == 'text/html') {
-            $response->end(file_get_contents($file));
+            if (!isset($static_files[$file])) {
+                $static_files[$file] = file_get_contents($file);
+            }
+            $response->end($static_files[$file]);
             return;
         }
         // $response->header('Content-Type', $mime);
