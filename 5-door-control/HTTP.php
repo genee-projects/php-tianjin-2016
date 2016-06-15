@@ -1,6 +1,6 @@
 <?php
 
-$server = new swoole_http_server("0.0.0.0", 3000);
+$server = new swoole_http_server("0.0.0.0", 80);
 
 $server->on('request', function ($request, $response) {
     $uri = $request->server['request_uri']; 
@@ -14,8 +14,10 @@ $server->on('request', function ($request, $response) {
         return; 
     } 
 
-    $content = file_get_contents($root.'/index.html');
-    $response->end($content);
+    if (!$uri || $uri='/') {
+        $content = file_get_contents($root.'/index.html');
+        $response->end($content);
+    }
 });
 
 $server->on('start', function(swoole_http_server $server) {

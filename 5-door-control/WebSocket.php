@@ -5,6 +5,10 @@ require "Hardware.php";
 $hardware = new Hardware('/dev/ttyO1');
 $server = new swoole_websocket_server("0.0.0.0", 9501);
 
+$server->on('open', function (swoole_websocket_server $server, $request) {
+    echo "有人连接 (fd=$request->fd)\n";
+});
+
 $server->on('message', function (swoole_websocket_server $server, $frame) 
     use ($hardware) {
         $d = (object) @json_decode($frame->data, true);

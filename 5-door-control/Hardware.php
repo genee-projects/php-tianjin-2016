@@ -6,6 +6,7 @@ class Hardware {
 
     public function __construct($filename) {
         if (file_exists($filename)) {
+            exec("/bin/stty -F $filename 4:0:cbf:0:3:1c:7f:15:4:0:1:0:11:13:1a:0:12:f:17:16:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0");
             $this->fd = fopen($filename, 'rb+');
         }
     }
@@ -17,28 +18,30 @@ class Hardware {
     }
 
     function parseBuffer($buf) {
-        $cmd = $buf[1];
+        $cmd = $buf[5];
         switch ($cmd) {
         case "\x01": // 读取到卡号
-            $this->emit('card', substr($buf, 3));
+            $this->emit('card', bin2hex(substr($buf, 7)));
             break;
         }
     }
 
-    private $buffer;
     function start() {
         if (!$this->fd) return;
 
         echo "开始监听硬件通讯...\n";
 
-        $ret = swoole_event_add($this->fd, function($fd) {
+        $buf = '';
+        $ret = swoole_event_add($this->fd, function($fd) use (& $buf) {
             $d = stream_get_contents($fd);
             if (strlen($d)==0) return;
-
-            $buf = $this->buffer . $d;
-
+            $buf .= $d;
             // searching for AAAA
             while (strlen($buf)) {
+                if (strlen($buf) <= 3) {
+                    break;
+                }
+
                 $pos = strpos($buf, "\xAA\xAA");
                 if ($pos === false) {
                     $buf = null;
@@ -47,10 +50,9 @@ class Hardware {
 
                 if ($pos > 0) {
                     $buf = substr($buf, $pos);
-                }
-
-                if (strlen($buf) <= 3) {
-                    break;
+                    if (strlen($buf) <=3) {
+                        break;
+                    }
                 }
 
                 $len = ord($buf[2]);
@@ -67,14 +69,13 @@ class Hardware {
                 $cs = ord($nbuf[3]);
                 $nbuf[3] = "\x00"; // clean buffer
                 if ($this->checksum($nbuf) == $cs) {
-                    $buf = substr($buf, $len);
                     $this->parseBuffer($nbuf);
+                    $buf = substr($buf, $len);
                 } else {
                     $buf = substr($buf, 1);
                 }
             }
 
-            $this->buffer = $buf;
         });
     }
 
