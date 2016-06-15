@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="format-detection" content="telephone=no">
+    <title>基理科技PHP培训</title>
+    <link rel="stylesheet" href="//g.alicdn.com/msui/sm/0.6.2/css/sm.min.css">
+    <script type='text/javascript' src='//g.alicdn.com/sj/lib/zepto/zepto.min.js' charset='utf-8'></script>
+    <script type='text/javascript' src='//g.alicdn.com/msui/sm/0.6.2/js/sm.min.js' charset='utf-8'></script>
+</head>
+<body>
+    <header class="bar bar-nav">
+        <h1 class='title'>基理科技PHP培训</h1>
+    </header>
+    <div class="content">
+        <div class="content-block-title">微信扫一扫访问</div>
+        <div class="card">
+            <div class="card-header">
+                <img id="url-qr" width="100%" style="max-width:256px;display:block; margin:10px auto">
+            </div>
+        </div>
+        
+
+        <div class="content-block-title">刷卡信息</div>
+        <div class="list-block">
+            <ul>
+                <li>
+                    <div class="item-content">
+                        <div class="item-inner">
+                            <div class="item-title label">张三</div>
+                            <div class="item-input">
+                                1234567
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <div class="item-content">
+                        <div class="item-inner">
+                            <div class="item-title label">李四</div>
+                            <div class="item-input">
+                                1234567
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+              
+        <div class="content-block-title">测试按钮</div>
+        <div class="list-block">
+            <ul>
+                <li><a id="card-reader" href="#" class="item-link list-button">模拟刷卡</a></li>
+                <li><a id="open-door" href="#" class="item-link list-button">打开门锁</a></li>
+            </ul>
+        </div>
+    </div>
+    <script>
+    Zepto(function($){
+        $('#url-qr').attr('src', 'http://tool.oschina.net/action/qrcode/generate?data=' + encodeURIComponent(window.location.href) + '&output=image%2Fpng&error=L&type=0&margin=0&size=4');
+
+        var host = 'ws://' + window.location.hostname + ':9501';
+        var ws = new WebSocket(host);
+        ws.onmessage = function (e) { 
+            console.log(e.data);
+            try {
+                data = JSON.parse(e.data);
+            } catch (e) {}
+            if (data.event == 'card') {
+                $.toast('刷卡操作');
+            }
+        };
+
+        function send(command, data) {
+            ws.send(JSON.stringify({
+                command: command,
+                data: data
+            }));
+        }
+        
+        $('#card-reader').on('click', function(){
+            send("card");
+            return false;
+        });
+
+        $('#open-door').on('click', function(){
+            send("open");
+            return false;
+        });
+    });
+    </script>
+</body>
+</html>
