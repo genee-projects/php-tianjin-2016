@@ -83,6 +83,7 @@ class Hardware {
         $this->fd and fwrite($this->fd, "\xAA\xAA\x06\x04\x00\x02");
     }
 
+    private $listeners = [];
     public function on($event, $callback) {
         $this->listeners[$event][] = $callback;
     }

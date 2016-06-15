@@ -26,34 +26,27 @@
 
         <div class="content-block-title">刷卡信息</div>
         <div class="list-block">
-            <ul>
+            <ul id="card-list">
+            <script type="text/template">
                 <li>
                     <div class="item-content">
                         <div class="item-inner">
-                            <div class="item-title label">张三</div>
+                            <div class="item-title label">{user}</div>
                             <div class="item-input">
-                                000000005072bd17
+                                {card}
                             </div>
                         </div>
                     </div>
                 </li>
-                <li>
-                    <div class="item-content">
-                        <div class="item-inner">
-                            <div class="item-title label">李四</div>
-                            <div class="item-input">
-                                00000000df39dd71
-                            </div>
-                        </div>
-                    </div>
-                </li>
+            </script>
             </ul>
         </div>
               
         <div class="content-block-title">测试按钮</div>
         <div class="list-block">
             <ul>
-                <li><a id="card-reader" href="#" class="item-link list-button">模拟刷卡</a></li>
+                <li><a id="emulate-known-card" href="#" class="item-link list-button">模拟已知刷卡</a></li>
+                <li><a id="emulate-unknown-card" href="#" class="item-link list-button">模拟未知刷卡</a></li>
                 <li><a id="open-door" href="#" class="item-link list-button">打开门锁</a></li>
             </ul>
         </div>
@@ -61,6 +54,19 @@
     <script>
     Zepto(function($){
         $('#url-qr').attr('src', 'http://tool.oschina.net/action/qrcode/generate?data=' + encodeURIComponent(window.location.href) + '&output=image%2Fpng&error=L&type=0&margin=0&size=4');
+
+        var cards = [
+            { card: '00000000df39dd71', user: '张三'},
+            { card: '000000005072bd17', user: '李四'}
+        ];
+        
+        var $cardList = $('#card-list');
+        var template = $cardList.find('script[type="text/template"]').html();
+        cards.forEach(function(card) {
+            var html = template;
+            html = html.replace(/\{user\}/g, card.user).replace(/\{card\}/g, card.card);
+            $cardList.append(html);
+        });
 
         var host = 'ws://' + window.location.hostname + ':9501';
         var ws = new WebSocket(host);
@@ -70,7 +76,18 @@
                 data = JSON.parse(e.data);
             } catch (e) {}
             if (data.event == 'card') {
-                $.toast('刷卡操作');
+                var done = false;
+                var card_no = data.data.card_no;
+                cards.forEach(function(card) {
+                    if (card.card == card_no) {
+                        $.toast(card.user + ' 进行了刷卡操作!');
+                        done = true;
+                        return false;
+                    }
+                });
+                if (!done) {
+                    $.toast('检测到未知卡号 ' + card_no + ' 的刷卡!');
+                }
             }
         };
 
@@ -81,8 +98,13 @@
             }));
         }
         
-        $('#card-reader').on('click', function(){
-            send("card");
+        $('#emulate-known-card').on('click', function(){
+            send("card", { card: cards[0].card });
+            return false;
+        });
+
+        $('#emulate-unknown-card').on('click', function(){
+            send("card", { card: '123456' });
             return false;
         });
 
