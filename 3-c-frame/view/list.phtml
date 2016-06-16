@@ -1,0 +1,50 @@
+<a class="btn btn-primary" href="/add">
+	<span class="glyphicon glyphicon-plus"></span>&#160;添加图书
+</a>
+<table class="table table-striped table-hover">
+	<thead>
+		<th class="col-md-1">No.</th>
+		<th class="col-md-2">Name</th>
+		<th class="col-md-3 hidden-xs">Position</th>
+		<th class="col-md-3">Description</th>
+		<th class="col-md-3">@Action</th>
+	</thead>
+	<tbody>
+		<?php foreach ($books as $no => $book): ?>
+		<tr>
+			<td class="col-md-1" style="vertical-align: middle;"><span class="label label-success"><?= str_pad($no, 6, 0, STR_PAD_LEFT) ?></span></td>
+			<td class="col-md-2" style="vertical-align: middle;"><?= $book['name'] ?></td>
+			<td class="col-md-3 hidden-xs" style="vertical-align: middle;"><?= $book['position'] ?></td>
+			<td class="col-md-3" style="vertical-align: middle;"><?= $book['description'] ?></td>
+			<td class="col-md-3" style="vertical-align: middle;">
+				<a class="btn btn-primary btn-sm" href="/edit/<?= $no ?>">修改</a>
+				<a class="btn btn-danger btn-sm delete" href="/delete/<?= $no ?>" >删除</a>
+			</td>
+		</tr>
+		<?php endforeach; ?>
+	</tbody>
+	<tfoot>
+		<tr>
+			<td colspan="5" style="padding: 10px;background: #F4F5F6;border-top: 2px solid #DDD;">
+				<?= strtr('当前书库拥有藏书量: %total', ['%total' => count($books)])?>
+			</td>
+		</tr>
+	</tfoot>
+</table>
+<script type="text/javascript">
+(function($){
+	$('table').on('click', '.delete', function(e){
+		if ( confirm('您确认删除这本书籍?') ) {
+			$.ajax({
+				url: $(this).attr('href')
+				, data: {}
+				, success: function(html) {
+					window.location.reload()
+				}
+			})
+		}
+		e.preventDefault()
+		return false
+	})
+})(jQuery);
+</script>
